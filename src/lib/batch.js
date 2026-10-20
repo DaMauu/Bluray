@@ -1,4 +1,5 @@
 import { buildImdbCacheKey, isFreshLibraryHit, libraryStorageKey } from './library.js';
+import { normalizeImdbId } from './text.js';
 
 export var CHECKPOINT_STORAGE_KEY = 'pt_batch_checkpoint';
 export var CHECKPOINT_MAX_AGE_MS = 12 * 60 * 60 * 1000;
@@ -43,6 +44,15 @@ export function serializeItem(item) {
         if (val !== undefined && val !== null && val !== '') out[key] = val;
     });
     return out;
+}
+
+export function mergeBatchItem(prev, item) {
+    if (!prev) return item;
+    var merged = Object.assign({}, prev, item || {});
+    if (item && !normalizeImdbId(item.imdbId) && prev.imdbId) merged.imdbId = prev.imdbId;
+    merged.row = (item && item.row) || prev.row || null;
+    merged.chkBox = (item && item.chkBox) || prev.chkBox || { checked: true };
+    return merged;
 }
 
 export function itemIdentity(item) {

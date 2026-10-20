@@ -7,6 +7,7 @@ import {
     isCheckpointUsable,
     serializeItem,
     itemIdentity,
+    mergeBatchItem,
     splitBatchByLibrary,
     nextNetworkDelay,
     CHECKPOINT_MAX_AGE_MS
@@ -83,6 +84,20 @@ test('checkpoint identity ignores the page number and rejects other lists', func
     assert.equal(isCheckpointUsable(cp, Object.assign({}, ctx, { siteBHost: 'hdsky.me' }), now, CHECKPOINT_MAX_AGE_MS), false);
     assert.equal(isCheckpointRecord(Object.assign({}, cp, { savedAt: now - CHECKPOINT_MAX_AGE_MS - 1 }), now, CHECKPOINT_MAX_AGE_MS), false);
     assert.equal(isCheckpointRecord(Object.assign({}, cp, { phase: 'done' }), now, CHECKPOINT_MAX_AGE_MS), false);
+});
+
+test('mergeBatchItem keeps a stored imdb id when the live row has none', function () {
+    var merged = mergeBatchItem(
+        { torrentId: '1', imdbId: 'tt0109558', movieTitle: 'The Dark Half' },
+        { torrentId: '1', imdbId: '', movieTitle: 'The Dark Half', row: { id: 'live' } }
+    );
+    assert.equal(merged.imdbId, 'tt0109558');
+    assert.equal(merged.row.id, 'live');
+    var replaced = mergeBatchItem(
+        { torrentId: '1', imdbId: 'tt0109558' },
+        { torrentId: '1', imdbId: 'tt0110912' }
+    );
+    assert.equal(replaced.imdbId, 'tt0110912');
 });
 
 test('serializeItem keeps resume fields and drops live dom objects', function () {

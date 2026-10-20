@@ -577,6 +577,14 @@
     });
     return out;
   }
+  function mergeBatchItem(prev, item) {
+    if (!prev) return item;
+    var merged = Object.assign({}, prev, item || {});
+    if (item && !normalizeImdbId(item.imdbId) && prev.imdbId) merged.imdbId = prev.imdbId;
+    merged.row = item && item.row || prev.row || null;
+    merged.chkBox = item && item.chkBox || prev.chkBox || { checked: true };
+    return merged;
+  }
   function itemIdentity(item) {
     if (!item) return "";
     return String(item.torrentId || "") || buildImdbCacheKey(item) || item.mainTitle || "";
@@ -2952,7 +2960,7 @@
       if (!id) return;
       var prev = map.get(id);
       if (!prev) map.set(id, item);
-      else map.set(id, Object.assign({}, prev, item, { row: item.row || prev.row || null, chkBox: item.chkBox || prev.chkBox || { checked: true } }));
+      else map.set(id, mergeBatchItem(prev, item));
     }
     function writeLibraryEntry(cacheKey, patch) {
       if (!config.libraryEnabled) return;

@@ -34,6 +34,7 @@ import {
     isCheckpointUsable,
     serializeItem,
     itemIdentity,
+    mergeBatchItem,
     splitBatchByLibrary,
     nextNetworkDelay
 } from './lib/batch.js';
@@ -2196,7 +2197,7 @@ if (currentSiteArch === 'unit3d') {
         if (!id) return;
         var prev = map.get(id);
         if (!prev) map.set(id, item);
-        else map.set(id, Object.assign({}, prev, item, { row: item.row || prev.row || null, chkBox: item.chkBox || prev.chkBox || { checked: true } }));
+        else map.set(id, mergeBatchItem(prev, item));
     }
 
     function writeLibraryEntry(cacheKey, patch) {
