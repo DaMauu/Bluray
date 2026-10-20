@@ -1819,7 +1819,7 @@ if (currentSiteArch === 'unit3d') {
                                 mainTitle: mainTitle, releaseName: mainTitle,
                                 cnTitle: subInfo.cnTitle, regionBracket: subInfo.regionBracket,
                                 movieTitle: ptMeta.movieTitle, movieYear: ptMeta.movieYear,
-                                imdbId: imdbNode ? imdbNode.href : '',
+                                imdbId: normalizeImdbId(imdbNode ? imdbNode.href : ''),
                                 sizeGB: sizeM ? parseSizeToGB(sizeM[0]) : 0, is4K: is4kText(mainTitle),
                                 downloadUrl: dlNode ? dlNode.href : siteUrl(siteA, 'download', { id: tid }),
                                 chkBox: { checked: true }
@@ -2851,7 +2851,9 @@ if (currentSiteArch === 'unit3d') {
             var sourceRegion = inferSourceRegion(fullDetails.synopsisBbcode || '', standardName, finalSub);
             var detectedLabels = inferTorrentLabels(standardName, finalSub, fullDetails.synopsisBbcode || '', pending.rawBdinfo);
 
+            var bInfo = getSiteBInfo();
             GM_setValue('pt_transfer_payload', {
+                targetBHost: extractHostKey(bInfo.url),
                 name: standardName,
                 small_descr: finalSub,
                 imdbUrl: finalImdbId ? ('https://www.imdb.com/title/' + finalImdbId + '/') : '',
@@ -2870,7 +2872,6 @@ if (currentSiteArch === 'unit3d') {
                 timestamp: new Date().getTime()
             });
 
-            var bInfo = getSiteBInfo();
             var uploadUrl = siteBase(bInfo.url) + 'upload.php';
             log('🚀 正在跳转目标站 [' + bInfo.name + '] 发布页全自动塞种填单...', 'INFO');
             if (uploadWin && !uploadWin.closed) {
@@ -2897,6 +2898,7 @@ if (currentSiteArch === 'unit3d') {
         if (location.pathname.indexOf('upload.php') === -1 && !/\/upload|\/torrents\/create/i.test(location.pathname)) return false;
         var transferData = GM_getValue('pt_transfer_payload', null);
         if (!transferData || (new Date().getTime() - transferData.timestamp >= 180000)) return false;
+        if (!transferData.targetBHost || extractHostKey(location.hostname) !== transferData.targetBHost) return false;
         GM_setValue('pt_transfer_payload', null);
         setTimeout(function () {
             try {
