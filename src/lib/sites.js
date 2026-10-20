@@ -54,6 +54,17 @@ export function siteUrl(site, kind, opt) {
     return base;
 }
 
+export function hostInSiteDatabase(urlOrHost, database) {
+    var host = extractHostKey(urlOrHost);
+    if (!host || !database) return false;
+    var keys = Object.keys(database);
+    for (var i = 0; i < keys.length; i++) {
+        var site = database[keys[i]];
+        if (site && extractHostKey(site.url) === host) return true;
+    }
+    return false;
+}
+
 export function extractHostKey(urlOrHost) {
     if (!urlOrHost) return '';
     try {

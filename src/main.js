@@ -15,6 +15,7 @@ import {
     gzHeaders,
     qbHeaders,
     extractHostKey,
+    hostInSiteDatabase,
     shouldSiteUseApi
 } from './lib/sites.js';
 import { parseBd, nameFromLabel, isDisc4K } from './lib/bdinfo.js';
@@ -950,9 +951,9 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
         siteAKey: GM_getValue('pt_site_a_key', 'AUTO'),
         siteBKey: GM_getValue('pt_site_b_key', 'PTer'),
         delayMs: GM_getValue('pt_delay_ms', 2500),
-        qbUrl: GM_getValue('pt_qb_url', 'http://127.0.0.1:8080/'),
-        qbUser: GM_getValue('pt_qb_user', 'admin'),
-        qbPass: GM_getValue('pt_qb_pass', 'adminadmin'),
+        qbUrl: GM_getValue('pt_qb_url', ''),
+        qbUser: GM_getValue('pt_qb_user', ''),
+        qbPass: GM_getValue('pt_qb_pass', ''),
         qbCategory: GM_getValue('pt_qb_category', ''),
         libraryEnabled: GM_getValue('pt_library_enabled', true),
         libraryFreshHours: GM_getValue('pt_library_fresh_hours', 24),
@@ -990,7 +991,7 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
             if (extractHostKey(SITE_DATABASE[k].url) === curHost) matched = SITE_DATABASE[k];
         });
         var sName = matched ? matched.name : (isPTP ? 'PTP' : (isBHD ? 'BeyondHD' : (isBLU ? 'Blutopia' : (isDV ? 'DreadVault' : (isPterClub ? 'PTerClub' : (/ptchdbits|chdbits/i.test(location.hostname) ? 'CHDBits (彩虹岛)' : (/hdsky\.me/i.test(location.hostname) ? 'HDSky (天空)' : location.hostname.split('.')[0].toUpperCase())))))));
-        return { name: sName, url: curOrigin, type: matched ? matched.type : currentSiteArch, apiKey: getApiKeyForUrl(location.hostname) };
+        return { name: sName, url: curOrigin, type: matched ? matched.type : currentSiteArch, apiKey: matched ? getApiKeyForUrl(location.hostname) : '' };
     }
 
     function getSiteBInfo() {
@@ -1182,8 +1183,9 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
         config.apiPagesCount = parseInt($('#pt-cfg-api-pages').value, 10) || 1;
         var curAUrl = (config.siteAKey === 'AUTO' || !SITE_DATABASE[config.siteAKey]) ? location.hostname : SITE_DATABASE[config.siteAKey].url;
         var curBUrl = SITE_DATABASE[config.siteBKey] ? SITE_DATABASE[config.siteBKey].url : '';
-        setApiKeyForUrl(curAUrl, $('#pt-cfg-a-apikey').value);
-        setApiKeyForUrl(curBUrl, $('#pt-cfg-b-apikey').value);
+        if (hostInSiteDatabase(curAUrl, SITE_DATABASE)) setApiKeyForUrl(curAUrl, $('#pt-cfg-a-apikey').value);
+        else if (($('#pt-cfg-a-apikey').value || '').trim()) log('API Key 只保存到已配置的站点。当前页不在站点列表里，未保存 A 站密钥。', 'WARN');
+        if (hostInSiteDatabase(curBUrl, SITE_DATABASE)) setApiKeyForUrl(curBUrl, $('#pt-cfg-b-apikey').value);
         var qbUrlInput = $('#pt-cfg-qb-url').value.trim();
         if (qbUrlInput && !qbUrlInput.endsWith('/')) qbUrlInput += '/';
         config.qbUrl = qbUrlInput;

@@ -13,7 +13,7 @@ On a torrent listing or detail page the script adds a panel:
 - A local **词库** remembers each successful check for the configured number of hours (default 24). The next visit repaints those rows without asking site B again.
 - Rows that site B does not already have go into a **待发** queue. **转种** pulls BDInfo, screenshots, and an optional Douban synopsis, then opens the destination upload page and fills the form. **推qB** sends the `.torrent` to qBittorrent.
 
-Supported page shapes are NexusPHP, UNIT3D, Gazelle, and the f3nix layout used by BeyondHD. The destination defaults to PTerClub and can be changed in settings.
+Supported page shapes are NexusPHP, UNIT3D, Gazelle, and the f3nix layout used by BeyondHD. The destination defaults to PTerClub and can be changed in settings. An API key is stored and sent only for a site in that list, including sites added in settings. qBittorrent starts with an empty address and password; the password stays in the userscript manager and is sent only to the WebUI address that is typed in.
 
 ## Pause and resume
 

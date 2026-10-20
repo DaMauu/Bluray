@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeImdbId, parseSizeToGB, parseTitleMeta, stripReleaseTags, parseCleanSubtitleString, parseRelativeAgeDays } from '../src/lib/text.js';
-import { siteUrl, gzHeaders, extractHostKey, shouldSiteUseApi } from '../src/lib/sites.js';
+import { siteUrl, gzHeaders, extractHostKey, hostInSiteDatabase, shouldSiteUseApi, DEFAULT_SITE_DATABASE } from '../src/lib/sites.js';
 import { parseBd, buildBd, isDisc4K, nameFromLabel } from '../src/lib/bdinfo.js';
 import { composeSubtitle, buildAll, getRegionFromTitle, zhOnly, castList } from '../src/lib/subtitle.js';
 import { inferSourceRegion, inferTorrentLabels } from '../src/lib/publish.js';
@@ -73,6 +73,10 @@ test('siteUrl builds search and download links per tracker family', function () 
     assert.equal(extractHostKey('https://www.PterClub.net/torrents.php'), 'pterclub.net');
     assert.equal(shouldSiteUseApi({ type: 'unit3d', apiKey: 'k' }), true);
     assert.equal(shouldSiteUseApi({ type: 'np', apiKey: 'k' }), false);
+    assert.equal(hostInSiteDatabase('https://pterclub.net/torrents.php', DEFAULT_SITE_DATABASE), true);
+    assert.equal(hostInSiteDatabase('https://evil.example/torrents.php', DEFAULT_SITE_DATABASE), false);
+    var withCustom = Object.assign({}, DEFAULT_SITE_DATABASE, { Mine: { url: 'https://mine.example/', type: 'np' } });
+    assert.equal(hostInSiteDatabase('mine.example', withCustom), true);
 });
 
 test('parseBd normalizes commas, length, and optional fps rounding', function () {
