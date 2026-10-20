@@ -46,6 +46,11 @@ export function serializeItem(item) {
     return out;
 }
 
+export function copyRestoredImdbId(live, merged) {
+    if (live && merged && merged.imdbId && !normalizeImdbId(live.imdbId)) live.imdbId = merged.imdbId;
+    return live;
+}
+
 export function mergeBatchItem(prev, item) {
     if (!prev) return item;
     var merged = Object.assign({}, prev, item || {});

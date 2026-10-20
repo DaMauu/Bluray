@@ -8,6 +8,7 @@ import {
     serializeItem,
     itemIdentity,
     mergeBatchItem,
+    copyRestoredImdbId,
     splitBatchByLibrary,
     nextNetworkDelay,
     CHECKPOINT_MAX_AGE_MS
@@ -98,6 +99,9 @@ test('mergeBatchItem keeps a stored imdb id when the live row has none', functio
         { torrentId: '1', imdbId: 'tt0110912' }
     );
     assert.equal(replaced.imdbId, 'tt0110912');
+    var live = { torrentId: '1', imdbId: '' };
+    copyRestoredImdbId(live, merged);
+    assert.equal(live.imdbId, 'tt0109558');
 });
 
 test('serializeItem keeps resume fields and drops live dom objects', function () {

@@ -35,6 +35,7 @@ import {
     serializeItem,
     itemIdentity,
     mergeBatchItem,
+    copyRestoredImdbId,
     splitBatchByLibrary,
     nextNetworkDelay
 } from './lib/batch.js';
@@ -2197,7 +2198,11 @@ if (currentSiteArch === 'unit3d') {
         if (!id) return;
         var prev = map.get(id);
         if (!prev) map.set(id, item);
-        else map.set(id, mergeBatchItem(prev, item));
+        else {
+            var merged = mergeBatchItem(prev, item);
+            copyRestoredImdbId(item, merged);
+            map.set(id, merged);
+        }
     }
 
     function writeLibraryEntry(cacheKey, patch) {

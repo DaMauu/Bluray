@@ -577,6 +577,10 @@
     });
     return out;
   }
+  function copyRestoredImdbId(live, merged) {
+    if (live && merged && merged.imdbId && !normalizeImdbId(live.imdbId)) live.imdbId = merged.imdbId;
+    return live;
+  }
   function mergeBatchItem(prev, item) {
     if (!prev) return item;
     var merged = Object.assign({}, prev, item || {});
@@ -2960,7 +2964,11 @@
       if (!id) return;
       var prev = map.get(id);
       if (!prev) map.set(id, item);
-      else map.set(id, mergeBatchItem(prev, item));
+      else {
+        var merged = mergeBatchItem(prev, item);
+        copyRestoredImdbId(item, merged);
+        map.set(id, merged);
+      }
     }
     function writeLibraryEntry(cacheKey, patch) {
       if (!config.libraryEnabled) return;
