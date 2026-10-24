@@ -647,7 +647,7 @@
   }
 
   // src/lib/shots.js
-  var SHOT_HOST_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|imgbb\.com|pixl\.is|imgs\.li|ptpimg\.me|onlyimage\.org|lensdump\.com|passtheima\.ge|dalexni\.com)/i;
+  var SHOT_HOST_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|imgbb\.com|pixl\.is|imgs\.li|ptpimg\.me|onlyimage\.org|lensdump\.com|passtheima\.ge|dalexni\.com|utp\.pm|seedpool\.org)/i;
   var SKIP_RE = /\/pic\/|logo|icon|avatar|smiley|emot|cover|poster/i;
   var BOT_IMAGES = ["ptpimg.me/606tk4.png", "i.ibb.co/2NVWb0c/uploadrr.webp"];
   function unwrapImageProxy(s) {
@@ -658,9 +658,15 @@
     } catch (e) {
       return s;
     }
+    inner = inner.replace(/^ssl:/i, "");
     if (!inner) return s;
     if (inner.startsWith("//")) inner = "https:" + inner;
     else if (!/^https?:/i.test(inner)) inner = "https://" + inner;
+    try {
+      new URL(inner);
+    } catch (e) {
+      return s;
+    }
     return inner;
   }
   function fullSizeShot(u, protocol) {
@@ -668,8 +674,8 @@
     if (!s || /^data:/i.test(s)) return "";
     if (s.startsWith("//")) s = (protocol || "https:") + s;
     if (!/^https?:/i.test(s)) return "";
-    s = unwrapImageProxy(s);
-    return s.replace(/\.(md|th|sm)\.(png|jpe?g)$/i, ".$2").replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, "//img$1.pixhost.to/images/").replace(/\/\/thumbs(\d*)\.imgbox\.com\/(.+)_t\.png$/i, "//images$1.imgbox.com/$2_o.png");
+    s = unwrapImageProxy(s).replace(/&amp;/g, "&");
+    return s.replace(/\.(md|th|sm)\.(png|jpe?g|webp|gif)$/i, ".$2").replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, "//img$1.pixhost.to/images/");
   }
   function isShotUrl(u) {
     if (!u || !SHOT_HOST_RE.test(u) || SKIP_RE.test(u)) return false;
@@ -1060,9 +1066,8 @@
       var ctx = rootDoc || document;
       var limit = maxShots !== void 0 && maxShots !== null ? maxShots : config.maxShots !== void 0 ? config.maxShots : 12;
       var set = /* @__PURE__ */ new Set();
-      if (rawBbcodeText) bbcodeShotUrls(rawBbcodeText).forEach(function(u) {
-        set.add(u);
-      });
+      var bbShots = rawBbcodeText ? bbcodeShotUrls(rawBbcodeText) : [];
+      if (bbShots.length) return bbShots.slice(0, Math.max(0, limit));
       $$("img", ctx).forEach(function(img) {
         var w = img.naturalWidth || img.width || 0;
         var h = img.naturalHeight || img.height || 0;
@@ -3504,7 +3509,8 @@
         log("⚠️ BDInfo 不完整（缺少 Disc Title/Label 或 Length）", "WARN");
         return false;
       }
-      var shots = collectShots(config.maxShots, document, unit3dDescriptionFromHtml(document.documentElement ? document.documentElement.innerHTML : ""));
+      var pageBbcode = currentSiteArch === "unit3d" && document.documentElement ? unit3dDescriptionFromHtml(document.documentElement.innerHTML) : "";
+      var shots = collectShots(config.maxShots, document, pageBbcode);
       var h1Node = $("h1");
       var rawRelease = (h1Node ? h1Node.textContent.trim() : "") || bdObj.label || bdObj.title || document.title;
       var tidMatch = location.href.match(/(?:id=|\/torrents\/)(\d+)/i);

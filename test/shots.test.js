@@ -15,7 +15,7 @@ test('bbcodeShotUrls reads sized [img] tags and skips the uploader badge', funct
     assert.deepEqual(bbcodeShotUrls(BLU_DESC), [
         'https://ptpimg.me/a1b2c3.png',
         'https://img.onlyimage.org/XyZ.png',
-        'https://images2.imgbox.com/aa/bb/AbCd_o.png',
+        'https://thumbs2.imgbox.com/aa/bb/AbCd_t.png',
         'https://i.lensdump.com/i/Q1w2E3.png'
     ]);
 });
@@ -25,6 +25,9 @@ test('fullSizeShot unwraps the UNIT3D wsrv.nl image proxy', function () {
     assert.equal(fullSizeShot(proxied), 'https://ptpimg.me/a1b2c3.png');
     assert.equal(fullSizeShot('https://images.weserv.nl/?url=' + encodeURIComponent('https://t12.pixhost.to/thumbs/1/x.png')), 'https://img12.pixhost.to/images/1/x.png');
     assert.equal(fullSizeShot('//i.ibb.co/x/y.md.png', 'https:'), 'https://i.ibb.co/x/y.png');
+    assert.equal(fullSizeShot('https://i.ibb.co/x/y.md.webp'), 'https://i.ibb.co/x/y.webp');
+    assert.equal(fullSizeShot('https://images.weserv.nl/?url=ssl:ptpimg.me/x.png'), 'https://ptpimg.me/x.png');
+    assert.equal(fullSizeShot('https://wsrv.nl/?url=' + encodeURIComponent('https://utp.pm/i/a.png?x=1&amp;y=2')), 'https://utp.pm/i/a.png?x=1&y=2');
     assert.equal(fullSizeShot('data:image/png;base64,AAAA'), '');
 });
 

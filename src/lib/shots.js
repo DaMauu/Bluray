@@ -1,4 +1,4 @@
-export var SHOT_HOST_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|imgbb\.com|pixl\.is|imgs\.li|ptpimg\.me|onlyimage\.org|lensdump\.com|passtheima\.ge|dalexni\.com)/i;
+export var SHOT_HOST_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|imgbb\.com|pixl\.is|imgs\.li|ptpimg\.me|onlyimage\.org|lensdump\.com|passtheima\.ge|dalexni\.com|utp\.pm|seedpool\.org)/i;
 
 var SKIP_RE = /\/pic\/|logo|icon|avatar|smiley|emot|cover|poster/i;
 // Upload-Assistant / uploadrr signature images that sit next to the screenshots.
@@ -10,9 +10,12 @@ function unwrapImageProxy(s) {
     if (!/^https?:\/\/(?:wsrv\.nl|images\.weserv\.nl)\//i.test(s)) return s;
     var inner = '';
     try { inner = new URL(s).searchParams.get('url') || ''; } catch (e) { return s; }
+    // Old weserv links spell the original as url=ssl:host/path.
+    inner = inner.replace(/^ssl:/i, '');
     if (!inner) return s;
     if (inner.startsWith('//')) inner = 'https:' + inner;
     else if (!/^https?:/i.test(inner)) inner = 'https://' + inner;
+    try { new URL(inner); } catch (e) { return s; }
     return inner;
 }
 
@@ -21,10 +24,10 @@ export function fullSizeShot(u, protocol) {
     if (!s || /^data:/i.test(s)) return '';
     if (s.startsWith('//')) s = (protocol || 'https:') + s;
     if (!/^https?:/i.test(s)) return '';
-    s = unwrapImageProxy(s);
-    return s.replace(/\.(md|th|sm)\.(png|jpe?g)$/i, '.$2')
-            .replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, '//img$1.pixhost.to/images/')
-            .replace(/\/\/thumbs(\d*)\.imgbox\.com\/(.+)_t\.png$/i, '//images$1.imgbox.com/$2_o.png');
+    // UNIT3D escapes the URL before it urlencodes it into the proxy link.
+    s = unwrapImageProxy(s).replace(/&amp;/g, '&');
+    return s.replace(/\.(md|th|sm)\.(png|jpe?g|webp|gif)$/i, '.$2')
+            .replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, '//img$1.pixhost.to/images/');
 }
 
 export function isShotUrl(u) {

@@ -361,8 +361,10 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
         var limit = (maxShots !== undefined && maxShots !== null) ? maxShots : (config.maxShots !== undefined ? config.maxShots : 12);
         var set = new Set();
 
-        // The raw BBCode is the uploader's own list, so it goes first when we have it.
-        if (rawBbcodeText) bbcodeShotUrls(rawBbcodeText).forEach(function (u) { set.add(u); });
+        // The raw BBCode is the uploader's own list. When it has shots, scanning the
+        // whole page would only add images from comments and signatures.
+        var bbShots = rawBbcodeText ? bbcodeShotUrls(rawBbcodeText) : [];
+        if (bbShots.length) return bbShots.slice(0, Math.max(0, limit));
 
         $$('img', ctx).forEach(function (img) {
             var w = img.naturalWidth || img.width || 0;
@@ -2655,7 +2657,8 @@ if (currentSiteArch === 'unit3d') {
             return false;
         }
 
-        var shots = collectShots(config.maxShots, document, unit3dDescriptionFromHtml(document.documentElement ? document.documentElement.innerHTML : ''));
+        var pageBbcode = (currentSiteArch === 'unit3d' && document.documentElement) ? unit3dDescriptionFromHtml(document.documentElement.innerHTML) : '';
+        var shots = collectShots(config.maxShots, document, pageBbcode);
         var h1Node = $('h1');
         var rawRelease = (h1Node ? h1Node.textContent.trim() : '') || bdObj.label || bdObj.title || document.title;
         var tidMatch = location.href.match(/(?:id=|\/torrents\/)(\d+)/i);
