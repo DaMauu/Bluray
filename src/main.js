@@ -40,6 +40,7 @@ import {
     nextNetworkDelay
 } from './lib/batch.js';
 import { npDiscMatches, looseDiscMatches } from './lib/dupe.js';
+import { fullSizeShot, isShotUrl, isDirectImageUrl, bbcodeShotUrls, unit3dDescriptionFromHtml } from './lib/shots.js';
 import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
 
 /* global GM_xmlhttpRequest, GM_setValue, GM_getValue, GM_addStyle, GM_setClipboard, GM_openInTab, unsafeWindow */
@@ -355,21 +356,13 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
         });
     }
 
-    var IMG_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|pixl\.is|imgs\.li)/i;
-
-    function fullSize(u) {
-        var s = (u || '').trim();
-        if (!s || /^data:/i.test(s)) return '';
-        if (s.startsWith('//')) s = location.protocol + s;
-        if (!/^https?:/i.test(s)) return '';
-        return s.replace(/\.(md|th|sm)\.(png|jpe?g)$/i, '.$2')
-                .replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, '//img$1.pixhost.to/images/');
-    }
-
     function collectShots(maxShots, rootDoc, rawBbcodeText) {
         var ctx = rootDoc || document;
         var limit = (maxShots !== undefined && maxShots !== null) ? maxShots : (config.maxShots !== undefined ? config.maxShots : 12);
         var set = new Set();
+
+        // The raw BBCode is the uploader's own list, so it goes first when we have it.
+        if (rawBbcodeText) bbcodeShotUrls(rawBbcodeText).forEach(function (u) { set.add(u); });
 
         $$('img', ctx).forEach(function (img) {
             var w = img.naturalWidth || img.width || 0;
@@ -379,29 +372,15 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
             var ss = img.getAttribute('srcset');
             if (ss) cs.push(ss.split(',')[0].trim().split(/\s+/)[0]);
             cs.forEach(function (c) {
-                var u = fullSize(c);
-                if (!u || !IMG_RE.test(u)) return;
-                if (/\/pic\//i.test(u) || /logo|icon|avatar|smiley|emot|cover|poster/i.test(u)) return;
-                set.add(u);
+                var u = fullSizeShot(c, location.protocol);
+                if (isShotUrl(u)) set.add(u);
             });
         });
 
         $$('a[href]', ctx).forEach(function (a) {
-            var u = fullSize(a.getAttribute('href'));
-            if (u && IMG_RE.test(u) && !/\/pic\//i.test(u) && !/logo|icon|avatar|smiley|emot|cover|poster/i.test(u)) {
-                set.add(u);
-            }
+            var u = fullSizeShot(a.getAttribute('href'), location.protocol);
+            if (isShotUrl(u) && isDirectImageUrl(u)) set.add(u);
         });
-
-        if (rawBbcodeText) {
-            var bbImgRe = /\[img\](https?:\/\/[^\s\[\]]+)\[\/img\]/gi, m;
-            while ((m = bbImgRe.exec(rawBbcodeText)) !== null) {
-                var u2 = fullSize(m[1]);
-                if (u2 && IMG_RE.test(u2) && !/\/pic\//i.test(u2) && !/logo|icon|avatar|smiley|emot|cover|poster/i.test(u2)) {
-                    set.add(u2);
-                }
-            }
-        }
 
         return Array.from(set).slice(0, Math.max(0, limit));
     }
@@ -1474,7 +1453,7 @@ if (currentSiteArch === 'unit3d') {
                         typeName: attr.type || 'Full Disc', resolution: attr.resolution || '',
                         sizeGB: parseSizeToGB(attr.size || 0),
                         imdbId: normalizeImdbId(attr.imdb_id),
-                        bdinfo: attr.bdinfo || attr.media_info || attr.mediainfo || '',
+                        bdinfo: attr.bd_info || attr.bdinfo || attr.media_info || attr.mediainfo || '',
                         description: attr.description || '',
                         downloadUrl: attr.download_link || siteUrl(siteA, 'download', { id: tid })
                     });
@@ -2490,7 +2469,7 @@ if (currentSiteArch === 'unit3d') {
             try {
                 var attr = await fetchUnit3dTorrentDetailByApi(siteA, tid);
                 if (attr) {
-                    var rawMi = attr.bdinfo || attr.media_info || attr.mediainfo || '';
+                    var rawMi = attr.bd_info || attr.bdinfo || attr.media_info || attr.mediainfo || '';
                     if (rawMi) result.bdinfo = rawMi.trim();
                     if (!result.imdbId && attr.imdb_id) result.imdbId = normalizeImdbId(attr.imdb_id);
                     if (attr.download_link) result.realDownloadUrl = attr.download_link;
@@ -2512,6 +2491,9 @@ if (currentSiteArch === 'unit3d') {
                 var detailDoc = await fetchDoc(detailWebUrl);
                 result.detailDoc = detailDoc;
                 var fullHtml = detailDoc.body ? detailDoc.body.innerHTML : '';
+                if (siteA.type === 'unit3d' && !result.rawDescription) {
+                    result.rawDescription = unit3dDescriptionFromHtml(detailDoc.documentElement ? detailDoc.documentElement.innerHTML : fullHtml);
+                }
                 var extractedDl = extractRealDownloadUrlFromDetailDoc(detailDoc, siteA.url, tid);
                 if (extractedDl) { result.realDownloadUrl = extractedDl; itemData.downloadUrl = extractedDl; }
                 if (siteA.type === 'np') {
@@ -2673,7 +2655,7 @@ if (currentSiteArch === 'unit3d') {
             return false;
         }
 
-        var shots = collectShots(config.maxShots, document, '');
+        var shots = collectShots(config.maxShots, document, unit3dDescriptionFromHtml(document.documentElement ? document.documentElement.innerHTML : ''));
         var h1Node = $('h1');
         var rawRelease = (h1Node ? h1Node.textContent.trim() : '') || bdObj.label || bdObj.title || document.title;
         var tidMatch = location.href.match(/(?:id=|\/torrents\/)(\d+)/i);
