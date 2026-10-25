@@ -40,6 +40,7 @@ import {
     nextNetworkDelay
 } from './lib/batch.js';
 import { npDiscMatches, looseDiscMatches } from './lib/dupe.js';
+import { fullSizeShot, isShotUrl, isDirectImageUrl, bbcodeShotUrls, unit3dDescriptionFromHtml } from './lib/shots.js';
 import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
 
 /* global GM_xmlhttpRequest, GM_setValue, GM_getValue, GM_addStyle, GM_setClipboard, GM_openInTab, unsafeWindow */
@@ -355,6 +356,7 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
         });
     }
 
+    // Non-UNIT3D sources keep the pre-refactor collector unchanged.
     var IMG_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|pixl\.is|imgs\.li)/i;
 
     function fullSize(u) {
@@ -366,7 +368,7 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
                 .replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, '//img$1.pixhost.to/images/');
     }
 
-    function collectShots(maxShots, rootDoc, rawBbcodeText) {
+    function collectShotsLegacy(maxShots, rootDoc, rawBbcodeText) {
         var ctx = rootDoc || document;
         var limit = (maxShots !== undefined && maxShots !== null) ? maxShots : (config.maxShots !== undefined ? config.maxShots : 12);
         var set = new Set();
@@ -402,6 +404,38 @@ import { inferSourceRegion, inferTorrentLabels } from './lib/publish.js';
                 }
             }
         }
+
+        return Array.from(set).slice(0, Math.max(0, limit));
+    }
+
+    function collectShots(maxShots, rootDoc, rawBbcodeText) {
+        if (getSiteAInfo().type !== 'unit3d') return collectShotsLegacy(maxShots, rootDoc, rawBbcodeText);
+        var ctx = rootDoc || document;
+        var limit = (maxShots !== undefined && maxShots !== null) ? maxShots : (config.maxShots !== undefined ? config.maxShots : 12);
+        var set = new Set();
+
+        // The raw BBCode is the uploader's own list. When it has shots, scanning the
+        // whole page would only add images from comments and signatures.
+        var bbShots = rawBbcodeText ? bbcodeShotUrls(rawBbcodeText) : [];
+        if (bbShots.length) return bbShots.slice(0, Math.max(0, limit));
+
+        $$('img', ctx).forEach(function (img) {
+            var w = img.naturalWidth || img.width || 0;
+            var h = img.naturalHeight || img.height || 0;
+            if (w && h && w < 150 && h < 150) return;
+            var cs = [img.getAttribute('src'), img.getAttribute('data-src'), img.getAttribute('data-original')];
+            var ss = img.getAttribute('srcset');
+            if (ss) cs.push(ss.split(',')[0].trim().split(/\s+/)[0]);
+            cs.forEach(function (c) {
+                var u = fullSizeShot(c, location.protocol);
+                if (isShotUrl(u)) set.add(u);
+            });
+        });
+
+        $$('a[href]', ctx).forEach(function (a) {
+            var u = fullSizeShot(a.getAttribute('href'), location.protocol);
+            if (isShotUrl(u) && isDirectImageUrl(u)) set.add(u);
+        });
 
         return Array.from(set).slice(0, Math.max(0, limit));
     }
@@ -1474,7 +1508,7 @@ if (currentSiteArch === 'unit3d') {
                         typeName: attr.type || 'Full Disc', resolution: attr.resolution || '',
                         sizeGB: parseSizeToGB(attr.size || 0),
                         imdbId: normalizeImdbId(attr.imdb_id),
-                        bdinfo: attr.bdinfo || attr.media_info || attr.mediainfo || '',
+                        bdinfo: attr.bd_info || attr.bdinfo || attr.media_info || attr.mediainfo || '',
                         description: attr.description || '',
                         downloadUrl: attr.download_link || siteUrl(siteA, 'download', { id: tid })
                     });
@@ -2490,7 +2524,7 @@ if (currentSiteArch === 'unit3d') {
             try {
                 var attr = await fetchUnit3dTorrentDetailByApi(siteA, tid);
                 if (attr) {
-                    var rawMi = attr.bdinfo || attr.media_info || attr.mediainfo || '';
+                    var rawMi = attr.bd_info || attr.bdinfo || attr.media_info || attr.mediainfo || '';
                     if (rawMi) result.bdinfo = rawMi.trim();
                     if (!result.imdbId && attr.imdb_id) result.imdbId = normalizeImdbId(attr.imdb_id);
                     if (attr.download_link) result.realDownloadUrl = attr.download_link;
@@ -2512,6 +2546,9 @@ if (currentSiteArch === 'unit3d') {
                 var detailDoc = await fetchDoc(detailWebUrl);
                 result.detailDoc = detailDoc;
                 var fullHtml = detailDoc.body ? detailDoc.body.innerHTML : '';
+                if (siteA.type === 'unit3d' && !result.rawDescription) {
+                    result.rawDescription = unit3dDescriptionFromHtml(detailDoc.documentElement ? detailDoc.documentElement.innerHTML : fullHtml);
+                }
                 var extractedDl = extractRealDownloadUrlFromDetailDoc(detailDoc, siteA.url, tid);
                 if (extractedDl) { result.realDownloadUrl = extractedDl; itemData.downloadUrl = extractedDl; }
                 if (siteA.type === 'np') {
@@ -2673,7 +2710,8 @@ if (currentSiteArch === 'unit3d') {
             return false;
         }
 
-        var shots = collectShots(config.maxShots, document, '');
+        var pageBbcode = (currentSiteArch === 'unit3d' && document.documentElement) ? unit3dDescriptionFromHtml(document.documentElement.innerHTML) : '';
+        var shots = collectShots(config.maxShots, document, pageBbcode);
         var h1Node = $('h1');
         var rawRelease = (h1Node ? h1Node.textContent.trim() : '') || bdObj.label || bdObj.title || document.title;
         var tidMatch = location.href.match(/(?:id=|\/torrents\/)(\d+)/i);
