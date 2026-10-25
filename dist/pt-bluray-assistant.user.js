@@ -646,6 +646,73 @@
     return source.sizeGB > 0 && other.sizeGB > 0 && Math.abs(source.sizeGB - other.sizeGB) <= tol;
   }
 
+  // src/lib/shots.js
+  var SHOT_HOST_RE = /(pixhost\.to|ptscreens\.com|imgbox\.com|turboimagehost\.com|imagebam\.com|postimg\.cc|imgur\.com|ibb\.co|imgbb\.com|pixl\.is|imgs\.li|ptpimg\.me|onlyimage\.org|lensdump\.com|passtheima\.ge|dalexni\.com|utp\.pm|seedpool\.org)/i;
+  var SKIP_RE = /\/pic\/|logo|icon|avatar|smiley|emot|cover|poster/i;
+  var BOT_IMAGES = ["ptpimg.me/606tk4.png", "i.ibb.co/2NVWb0c/uploadrr.webp"];
+  function unwrapImageProxy(s) {
+    if (!/^https?:\/\/(?:wsrv\.nl|images\.weserv\.nl)\//i.test(s)) return s;
+    var inner = "";
+    try {
+      inner = new URL(s).searchParams.get("url") || "";
+    } catch (e) {
+      return s;
+    }
+    inner = inner.replace(/^ssl:/i, "");
+    if (!inner) return s;
+    if (inner.startsWith("//")) inner = "https:" + inner;
+    else if (!/^https?:/i.test(inner)) inner = "https://" + inner;
+    try {
+      new URL(inner);
+    } catch (e) {
+      return s;
+    }
+    return inner;
+  }
+  function fullSizeShot(u, protocol) {
+    var s = String(u || "").trim();
+    if (!s || /^data:/i.test(s)) return "";
+    if (s.startsWith("//")) s = (protocol || "https:") + s;
+    if (!/^https?:/i.test(s)) return "";
+    s = unwrapImageProxy(s).replace(/&amp;/g, "&");
+    return s.replace(/\.(md|th|sm)\.(png|jpe?g|webp|gif)$/i, ".$2").replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, "//img$1.pixhost.to/images/");
+  }
+  function isShotUrl(u) {
+    if (!u || !SHOT_HOST_RE.test(u) || SKIP_RE.test(u)) return false;
+    return !BOT_IMAGES.some(function(b) {
+      return u.indexOf(b) !== -1;
+    });
+  }
+  function isDirectImageUrl(u) {
+    return /\.(png|jpe?g|webp|gif)(?:[?#].*)?$/i.test(u || "") && !/pixhost\.to\/show\//i.test(u);
+  }
+  function bbcodeShotUrls(text) {
+    var out = [];
+    var re = /\[img(?:[=\s][^\]]*)?\]\s*((?:https?:)?\/\/[^\s\[\]]+)\s*\[\/img\]/gi, m;
+    while ((m = re.exec(String(text || ""))) !== null) {
+      var u = fullSizeShot(m[1]);
+      if (isShotUrl(u) && out.indexOf(u) === -1) out.push(u);
+    }
+    return out;
+  }
+  function unit3dDescriptionFromHtml(html) {
+    var scripts = String(html || "").match(/<script\b[^>]*>[\s\S]*?<\/script>/gi) || [];
+    for (var i = 0; i < scripts.length; i++) {
+      if (!/Alpine\.data\(\s*['"]description['"]/.test(scripts[i])) continue;
+      var m = scripts[i].match(/atob\(\s*['"]([A-Za-z0-9+/=]+)['"]\s*\)/);
+      if (!m) continue;
+      try {
+        var bin = atob(m[1]);
+        var bytes = new Uint8Array(bin.length);
+        for (var j = 0; j < bin.length; j++) bytes[j] = bin.charCodeAt(j);
+        return new TextDecoder("utf-8").decode(bytes);
+      } catch (e) {
+        return "";
+      }
+    }
+    return "";
+  }
+
   // src/lib/publish.js
   function inferSourceRegion(synopsisBbcode, standardName, customSubTitle) {
     var textToSearch = synopsisBbcode + " " + standardName + " " + customSubTitle;
@@ -1003,7 +1070,7 @@
       if (!/^https?:/i.test(s)) return "";
       return s.replace(/\.(md|th|sm)\.(png|jpe?g)$/i, ".$2").replace(/\/\/t(\d+)\.pixhost\.to\/thumbs\//i, "//img$1.pixhost.to/images/");
     }
-    function collectShots(maxShots, rootDoc, rawBbcodeText) {
+    function collectShotsLegacy(maxShots, rootDoc, rawBbcodeText) {
       var ctx = rootDoc || document;
       var limit = maxShots !== void 0 && maxShots !== null ? maxShots : config.maxShots !== void 0 ? config.maxShots : 12;
       var set = /* @__PURE__ */ new Set();
@@ -1036,6 +1103,31 @@
           }
         }
       }
+      return Array.from(set).slice(0, Math.max(0, limit));
+    }
+    function collectShots(maxShots, rootDoc, rawBbcodeText) {
+      if (getSiteAInfo().type !== "unit3d") return collectShotsLegacy(maxShots, rootDoc, rawBbcodeText);
+      var ctx = rootDoc || document;
+      var limit = maxShots !== void 0 && maxShots !== null ? maxShots : config.maxShots !== void 0 ? config.maxShots : 12;
+      var set = /* @__PURE__ */ new Set();
+      var bbShots = rawBbcodeText ? bbcodeShotUrls(rawBbcodeText) : [];
+      if (bbShots.length) return bbShots.slice(0, Math.max(0, limit));
+      $$("img", ctx).forEach(function(img) {
+        var w = img.naturalWidth || img.width || 0;
+        var h = img.naturalHeight || img.height || 0;
+        if (w && h && w < 150 && h < 150) return;
+        var cs = [img.getAttribute("src"), img.getAttribute("data-src"), img.getAttribute("data-original")];
+        var ss = img.getAttribute("srcset");
+        if (ss) cs.push(ss.split(",")[0].trim().split(/\s+/)[0]);
+        cs.forEach(function(c) {
+          var u = fullSizeShot(c, location.protocol);
+          if (isShotUrl(u)) set.add(u);
+        });
+      });
+      $$("a[href]", ctx).forEach(function(a) {
+        var u = fullSizeShot(a.getAttribute("href"), location.protocol);
+        if (isShotUrl(u) && isDirectImageUrl(u)) set.add(u);
+      });
       return Array.from(set).slice(0, Math.max(0, limit));
     }
     function findPageImdb(rootDoc) {
@@ -2148,7 +2240,7 @@
               resolution: attr.resolution || "",
               sizeGB: parseSizeToGB(attr.size || 0),
               imdbId: normalizeImdbId(attr.imdb_id),
-              bdinfo: attr.bdinfo || attr.media_info || attr.mediainfo || "",
+              bdinfo: attr.bd_info || attr.bdinfo || attr.media_info || attr.mediainfo || "",
               description: attr.description || "",
               downloadUrl: attr.download_link || siteUrl(siteA, "download", { id: tid })
             });
@@ -3279,7 +3371,7 @@
         try {
           var attr = await fetchUnit3dTorrentDetailByApi(siteA, tid);
           if (attr) {
-            var rawMi = attr.bdinfo || attr.media_info || attr.mediainfo || "";
+            var rawMi = attr.bd_info || attr.bdinfo || attr.media_info || attr.mediainfo || "";
             if (rawMi) result.bdinfo = rawMi.trim();
             if (!result.imdbId && attr.imdb_id) result.imdbId = normalizeImdbId(attr.imdb_id);
             if (attr.download_link) result.realDownloadUrl = attr.download_link;
@@ -3301,6 +3393,9 @@
           var detailDoc = await fetchDoc(detailWebUrl);
           result.detailDoc = detailDoc;
           var fullHtml = detailDoc.body ? detailDoc.body.innerHTML : "";
+          if (siteA.type === "unit3d" && !result.rawDescription) {
+            result.rawDescription = unit3dDescriptionFromHtml(detailDoc.documentElement ? detailDoc.documentElement.innerHTML : fullHtml);
+          }
           var extractedDl = extractRealDownloadUrlFromDetailDoc(detailDoc, siteA.url, tid);
           if (extractedDl) {
             result.realDownloadUrl = extractedDl;
@@ -3458,7 +3553,8 @@
         log("⚠️ BDInfo 不完整（缺少 Disc Title/Label 或 Length）", "WARN");
         return false;
       }
-      var shots = collectShots(config.maxShots, document, "");
+      var pageBbcode = currentSiteArch === "unit3d" && document.documentElement ? unit3dDescriptionFromHtml(document.documentElement.innerHTML) : "";
+      var shots = collectShots(config.maxShots, document, pageBbcode);
       var h1Node = $("h1");
       var rawRelease = (h1Node ? h1Node.textContent.trim() : "") || bdObj.label || bdObj.title || document.title;
       var tidMatch = location.href.match(/(?:id=|\/torrents\/)(\d+)/i);
