@@ -1,37 +1,101 @@
-# PT 原盘转载发布与智能查重助手
+# future 分支开发说明
 
-Tampermonkey userscript for moving untouched Blu-ray discs between private trackers. It reads a listing on site A, drops encodes / DVD / DIY / 禁转, asks site B whether the same disc is already there, and can fill B's upload form from the source page's BDInfo.
+本分支保存**单文件版**油猴脚本（6000+ 行，esbuild 之前的历史形态），与 `main` 上的 `src/` 模块化版本是两条独立线，**不打算合并**。
 
-The installable file is [`dist/pt-bluray-assistant.user.js`](dist/pt-bluray-assistant.user.js). Source lives in `src/` and is bundled back into that single Greasemonkey script.
+- 分支：`future`
+- 目标文件：`legacy/pt-bluray-assistant-v8.2.15.user.js`
+- 适用：直接丢进 Tampermonkey 安装，无需 npm、无需构建
+- 与 `main` 的关系：只作参考与对照，不参与 `src/` 的重构，也不覆盖 `dist/`
 
-## What it does
+---
 
-On a torrent listing or detail page the script adds a panel:
+## 1. 开发规则
 
-- **预设** locks the current site's search form to movie full-disc categories.
-- **拉取/查重** audits the open page, walks later pages (or the UNIT3D API when a key is set), and searches the destination site by IMDb id.
-- A local **词库** remembers each successful check for the configured number of hours (default 24). The next visit repaints those rows without asking site B again.
-- Rows that site B does not already have go into a **待发** queue. **转种** pulls BDInfo, screenshots, and an optional Douban synopsis, then opens the destination upload page and fills the form. **推qB** sends the `.torrent` to qBittorrent.
+1. **每次改动新建版本文件**，命名 `PT 原盘转载发布与智能查重助手 vX.Y.Z.js`，放在 `legacy/`；旧版本一律保留，禁止原地覆盖。编号只增不减，作废的版本号不回收。
+2. 提交前必须 `node --check <文件>` 通过，并跑完回归测试（见第 5 节）。
+3. 提交信息用 `<type>: <改动>`，例如 `fix: 标题不再被种子名回填`、`feat: 断点续传`。
+4. 不写入任何站点账号密码；不自动提交发布表单；恢复类操作必须零网络请求。
+5. 改动若涉及站点结构（选择器），在 PR 描述里附上来源页 HTML 片段，方便复现。
 
-Supported page shapes are NexusPHP, UNIT3D, Gazelle, and the f3nix layout used by BeyondHD. The destination defaults to PTerClub and can be changed in settings. An API key is stored and sent only for a site in that list, including sites added in settings. qBittorrent starts with an empty address and password; the password stays in the userscript manager and is sent only to the WebUI address that is typed in.
+---
 
-## Pause and resume
+## 2. 当前版本做了什么（v8.1.0 → v8.2.15）
 
-暂停 keeps the queue and the词库. It also stores the listing that was already pulled (`pt_batch_checkpoint`, 12 hours, same site pair and same filters).
+| 版本 | 改动 |
+|---|---|
+| v8.1.0 | 详情页截图提取重写，`.md/.th` 缩略图还原原图 |
+| v8.1.3 / v8.1.4 | 副标题主演多人（默认 3）；M-Team 适配 |
+| v8.2.0 / v8.2.1 | M-Team 翻页加固（页码+内容双确认、0 命中重试、末页判定、翻页后重建工具条）；预设去掉“促銷” |
+| v8.2.2 | 删除手动 IMDb / 粘贴 BDInfo 区块；删顶部“自动识别”条；按钮一行紧凑排列 |
+| v8.2.3 | 修复 `allItemsMap is not defined`；翻页失败改用页码链接重试；只有真到最后一页才算抓完 |
+| v8.2.4 | 断点续传（记住页号）；每页 2–3.2 秒、每 20 页歇 12 秒 |
+| v8.2.5 | 英字只看 BDInfo `Subtitle:` 行的 English，去掉误判的裸 `ENG` |
+| v8.2.6 | 截图多容器合并、srcset 取最大、扩展缩略图命名、同图去重；图床返图尺寸校验 |
+| v8.2.7 | 登录态失效立即停（登录页/403）；查重下限 4 秒、每 10 条歇 30 秒、429 退避 60 秒；断点记录已查 id；断点不因 URL 变化作废 |
+| v8.2.8 | 解包 `wsrv.nl` 等图片代理，还原真实地址 |
+| v8.2.9 | 查重多关键词兜底：IMDb/西部片名 → `AKA` 原名 → 完整片名 |
+| v8.2.10 | 主演重复名折叠（已废弃，未进主线） |
+| v8.2.11 | 图床复核强化：去掉 no-referrer；上传后统一比尺寸；直传与 SSO 两条路径都复核 |
+| v8.2.12 | 标题只在输入框为空时填一次，不延迟重写 |
+| v8.2.13 | 发布前复核：按 IMDb/片名/AKA 强制重查，查到即拦下 |
+| v8.2.14 | 标题改为源站标题原文照抄，不再从豆瓣/种子名推导 |
+| v8.2.15 | 种子文件名改用源站标题；挂载种子后标题守卫（0.6/1.5/3/5/8 秒校正，检测手动输入即放手） |
 
-- The next click continues page fetching from the saved page instead of page 1.
-- Titles with a fresh, successful词库 entry are logged once as **词库秒过** and are not requested again. The counter continues, so a stop at 46/1009 comes back as `[47/1009]`.
-- Failed requests are not treated as finished, so the next run retries them.
-- While that checkpoint exists, the词库 cap does not evict rows that belong to the open batch. A 500-entry cap used to delete the beginning of a 1000-title run, which made the next click look like a full restart.
+---
 
-The delay between requests still starts at the configured interval and adds the existing 3 second rest every 15 real requests. A 429 or other failure lengthens the next wait. Cached titles do not spend that delay.
+## 3. 行为约定（改代码前先读）
 
-## Build
+1. **标题**：取源站固定位置原文——详情页 `h1.torrent__name`、列表行 `a.torrent-search--list__name`；一字不改；只填一次；用户改过就不再动。
+2. **副标题**：`中文名 | 版本 | 导演:X | 主演:A / B / C | [语言] | [字幕]`，主演数由设置项 `subCast` 控制。
+3. **英字/中字**：英字仅由 BDInfo `Subtitle:` 行判定；中字 = BDInfo 有中文语言，或简介出现“中字/中文”。
+4. **截图**：合并所有描述容器；还原 `.md/.th/_thumb/-400x225/?w=400` 与图片代理；按原图去重；转存图床后逐张比尺寸，压小则回退原链。
+5. **查重**：先 IMDb/片名，无结果再试 `AKA` 原名与完整片名；发布前强制复核一次；掉登录态立即中止并保留断点。
+6. **M-Team**：预设只锁 `電影/BluRay`（cat-421），不设促销；翻页节奏 2–3.2 秒/页、每 20 页歇 12 秒；断点续传从上次页号继续。
+7. **断点**：`pt_batch_checkpoint` 保存名单、页号、已查 id；只有抓到最后一页才标记完成。
 
-```bash
-npm install
-npm test
-npm run build
+---
+
+## 4. 已知问题 / 待办
+
+- [ ] 猫站会按种子文件名回填标题，v8.2.15 用“文件名=源站标题 + 标题守卫”压制，**待实测确认**。
+- [ ] 词库 720h 缓存里存在旧版本错误“可发”结论，批量会跳过，仅靠发布前复核兜底。彻底方案：词库加规则版本位（`ruleV`），代价是全部重查，需评估限流。
+- [ ] 图床若确实把长图压到 400px：目前回退原链；若原链防盗链，需改成“测不到尺寸就不转存”。
+- [ ] HDDVDinfo 这类字段粘连的 BDInfo 不做解析，手工替换（已确认不修）。
+- [ ] M-Team `download/<id>` 接口未实测；翻页后只重建当前页工具条。
+- [ ] 查重节奏已放慢，仍可能触发站点限流，需持续观察日志中的 AUTH_LOST / 403 / 429。
+
+---
+
+## 5. 校验与回归
+
+```powershell
+node --check legacy\pt-bluray-assistant-v8.2.15.user.js
 ```
 
-`npm test` covers the pure helpers and also builds `dist/pt-bluray-assistant.user.js`. Install that file in Tampermonkey. The metadata block is `src/userscript.meta.js`; esbuild prepends it to the bundle from `src/main.js`.
+回归测试位于开发者本机 `%TEMP%\pt_*_test.js`（Node，切片执行源码片段，不依赖浏览器）：
+
+```
+pt_cast_test      pt_title2_test   pt_label_test    pt_shot_test
+pt_auth_test      pt_aka_test      pt_imgverify_test
+pt_mteam_test     pt_mteam_preset_test  pt_mteam_crawl_test
+pt_err_test       pt_worker_test   pt_qb_test
+```
+
+全部要求 `ALL PASS`。新增功能请补对应测试；站点相关逻辑优先写“结构片段 + 断言输出”的用例，而不是靠人眼点页面。
+
+---
+
+## 6. 发版流程
+
+1. 复制上一版为 `legacy/pt-bluray-assistant-vX.Y.Z.user.js`，只在新文件上改。
+2. 改 `@version`、面板标题、启动日志里的版本号（三处必须一致）。
+3. `node --check` + 跑回归。
+4. 提交并推送 `future` 分支。
+5. 在 PR 描述里写：改了什么、为什么、如何验证、影响范围。
+
+---
+
+## 7. 与 main 分支的边界
+
+- `main` 的 `src/`、`dist/` 由模块化构建产出，本分支**不修改**这些路径。
+- 本分支只在 `legacy/` 下新增文件；如未来要把单文件版的经验搬进 `src/`，另开分支单独做，不在 `future` 里混改。
