@@ -20,7 +20,7 @@
 
 ## 2. 代码在哪
 
-- 本分支只有单文件版：`legacy/pt-bluray-assistant-v0.0.0.14.user.js`（6000+ 行，`(() => { ... })()` IIFE，`var` + 函数声明，无构建步骤）。
+- 本分支只有单文件版：`legacy/pt-bluray-assistant-v0.0.0.15.user.js`（6000+ 行，`(() => { ... })()` IIFE，`var` + 函数声明，无构建步骤）。
 - 根目录 `README.md` 是开发说明（版本流水、行为约定、待办、发版流程）。
 - `docs/` 只放文档。
 - `main` 上的 `src/`、`dist/` 是**另一条线**（模块化 + esbuild），本分支不修改、不合并。
