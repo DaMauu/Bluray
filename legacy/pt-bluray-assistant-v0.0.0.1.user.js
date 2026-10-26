@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PT 原盘转载发布与智能查重助手
 // @namespace    https://pterclub.net/
-// @version      8.2.15
+// @version      0.0.0.1
 // @description  蓝光原盘筛选、查重词库（分片存储/30天有效/导出导入）、断点续查、BDInfo 排版与转种填单、截图直连转存图床（必要时走 PterClub 单点登录）、qB 推送自动补设分类、M-Team 网页适配
 // @author       Kevin
 // @match        *://*.pterclub.net/*
@@ -43,7 +43,7 @@
 
 (() => {
   try {
-    console.log("[PT助手] v8.2.15 已注入 @ " + location.host + location.pathname);
+    console.log("[PT助手] v0.0.0.1 已注入 @ " + location.host + location.pathname);
   } catch (e) {
   }
   // 图床代理页：只跑转存任务，不加载主面板
@@ -2292,7 +2292,7 @@
       var panelHtml = `
             <div id="pt-checker-panel">
                 <div id="pt-panel-header">
-                    <span>📀 转种与调度中枢 (v8.2.15)</span>
+                    <span>📀 转种与调度中枢 (v0.0.0.1)</span>
                     <div class="pt-header-tools">
                         <span data-pt-act="panel-collapse" class="pt-header-icon" title="收起为侧边胶囊">─</span>
                         <span data-pt-act="panel-collapse" class="pt-header-icon" title="隐藏面板">✖</span>
