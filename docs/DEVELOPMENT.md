@@ -3,7 +3,7 @@
 本分支保存**单文件版**油猴脚本（6000+ 行，esbuild 之前的历史形态），与 `main` 上的 `src/` 模块化版本是两条独立线，**不打算合并**。
 
 - 分支：`future`
-- 目标文件：`legacy/pt-bluray-assistant-v0.0.0.1.user.js`
+- 目标文件：`legacy/pt-bluray-assistant-v0.0.0.2.user.js`（最新）
 - 适用：直接丢进 Tampermonkey 安装，无需 npm、无需构建
 - 与 `main` 的关系：只作参考与对照，不参与 `src/` 的重构，也不覆盖 `dist/`
 
@@ -13,6 +13,7 @@
 
 1. **版本号从 `0.0.0.1` 起，每次更新 +0.0.0.1**（0.0.0.2、0.0.0.3 …），四段式只增不减，作废的号不回收。
    每次改动新建文件 `legacy/pt-bluray-assistant-v<版本号>.user.js`，旧版本保留，禁止原地覆盖。
+   桌面只放**最新一版**，其余移入 `C:\Users\wiii\Desktop\PT助手-历史版本\`。
    版本号必须三处同步：`@version`、面板标题 `转种与调度中枢 (vX)`、启动日志 `[PT助手] vX 已注入 @`。
 2. 提交前必须 `node --check <文件>` 通过，并跑完回归测试（见第 5 节）。
 3. 提交信息用 `<type>: <改动>`，例如 `fix: 标题不再被种子名回填`、`feat: 断点续传`。
@@ -71,7 +72,7 @@
 ## 5. 校验与回归
 
 ```powershell
-node --check legacy\pt-bluray-assistant-v0.0.0.1.user.js
+node --check legacy\pt-bluray-assistant-v0.0.0.2.user.js
 ```
 
 回归测试位于开发者本机 `%TEMP%\pt_*_test.js`（Node，切片执行源码片段，不依赖浏览器）：
