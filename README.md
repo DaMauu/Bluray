@@ -3,7 +3,7 @@
 本分支保存**单文件版**油猴脚本（6000+ 行，esbuild 之前的历史形态），与 `main` 上的 `src/` 模块化版本是两条独立线，**不打算合并**。
 
 - 分支：`future`
-- 目标文件：`legacy/pt-bluray-assistant-v0.0.0.15.user.js`（最新）
+- 目标文件：`legacy/pt-bluray-assistant-v0.0.0.16.user.js`（最新）
 - 适用：直接丢进 Tampermonkey 安装，无需 npm、无需构建
 - 与 `main` 的关系：只作参考与对照，不参与 `src/` 的重构，也不覆盖 `dist/`
 
@@ -72,7 +72,7 @@
 ## 5. 校验与回归
 
 ```powershell
-node --check legacy\pt-bluray-assistant-v0.0.0.15.user.js
+node --check legacy\pt-bluray-assistant-v0.0.0.16.user.js
 ```
 
 回归测试位于开发者本机 `%TEMP%\pt_*_test.js`（Node，切片执行源码片段，不依赖浏览器）：
