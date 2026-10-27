@@ -6,7 +6,7 @@
 
 - 当前版本：`legacy/pt-bluray-assistant-v0.0.0.27.user.js`
 - 分支：`future`（单文件版；与 `main` 的 `src/` 模块化版本互不合并）
-- 作者：大肥鱼
+- 作者：大肥鱼（DeepSeek）
 - 支持页面：NexusPHP、UNIT3D、Gazelle、f3nix（BeyondHD）
 
 ---
