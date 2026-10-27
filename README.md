@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="docs/banner.png" alt="PT 原盘转载发布与智能查重助手" width="100%" />
+  <img src="docs/banner.png" alt="原盘转载面板" width="100%" />
 </div>
 
-<h1 align="center">PT 原盘转载发布与智能查重助手</h1>
+<h1 align="center">原盘转载面板</h1>
 
 <p align="center"><b>蓝光原盘跨站搬运流水线</b><br/>
 筛选 · 查重 · 排版 · 填单 · 推种，在一悬浮面板内完成</p>
@@ -66,15 +66,15 @@
 ## 安装
 
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/)。
-2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.30.user.js`](legacy/pt-bluray-assistant-v0.0.0.30.user.js)，点 `Raw` 确认安装。
-3. 刷新站点，右上角出现「转种与调度中枢」即成功。
+2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.31.user.js`](legacy/pt-bluray-assistant-v0.0.0.31.user.js)，点 `Raw` 确认安装。
+3. 刷新站点，右上角出现「原盘转载面板」即成功。
 
 后续步骤见 [快速上手](docs/QUICKSTART.md)。
 
 ## 目录
 
 ```
-legacy/pt-bluray-assistant-v0.0.0.30.user.js   当前版本（安装这个）
+legacy/pt-bluray-assistant-v0.0.0.31.user.js   当前版本（安装这个）
 docs/QUICKSTART.md                             快速上手
 docs/GUIDE.md                                  使用手册
 docs/ARCHITECTURE.md                           架构设计

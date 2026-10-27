@@ -13,14 +13,14 @@
 
 ```
 // @version      0.0.0.N
-转种与调度中枢 (v0.0.0.N)
+原盘转载面板 (v0.0.0.N)
 [PT助手] v0.0.0.N 已注入 @
 ```
 
 ## 二、提交前校验
 
 ```powershell
-node --check legacy\pt-bluray-assistant-v0.0.0.30.user.js
+node --check legacy\pt-bluray-assistant-v0.0.0.31.user.js
 ```
 
 语法通过不等于功能正确。涉及以下改动时，必须补对应回归：
