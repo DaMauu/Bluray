@@ -66,7 +66,7 @@
 ## 安装
 
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/)。
-2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.27.user.js`](legacy/pt-bluray-assistant-v0.0.0.27.user.js)，点 `Raw` 确认安装。
+2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.28.user.js`](legacy/pt-bluray-assistant-v0.0.0.28.user.js)，点 `Raw` 确认安装。
 3. 刷新站点，右上角出现「转种与调度中枢」即成功。
 
 后续步骤见 [快速上手](docs/QUICKSTART.md)。
@@ -74,7 +74,7 @@
 ## 目录
 
 ```
-legacy/pt-bluray-assistant-v0.0.0.27.user.js   当前版本（安装这个）
+legacy/pt-bluray-assistant-v0.0.0.28.user.js   当前版本（安装这个）
 docs/QUICKSTART.md                             快速上手
 docs/GUIDE.md                                  使用手册
 docs/ARCHITECTURE.md                           架构设计
