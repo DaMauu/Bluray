@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="240" viewBox="0 0 1000 240" role="img" aria-label="大肥鱼 · PT 原盘转载发布与智能查重助手">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#eef6ff"/>
+      <stop offset="55%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#fff5ec"/>
+    </linearGradient>
+    <linearGradient id="fish" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffb066"/>
+      <stop offset="55%" stop-color="#ff8a3d"/>
+      <stop offset="100%" stop-color="#f06a1f"/>
+    </linearGradient>
+    <linearGradient id="fin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffd0a3"/>
+      <stop offset="100%" stop-color="#ff9a4d"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="240" rx="20" fill="url(#bg)"/>
+  <circle cx="905" cy="52" r="26" fill="#dbeafe" opacity="0.7"/>
+  <circle cx="948" cy="168" r="14" fill="#ffe4c7" opacity="0.9"/>
+  <circle cx="72" cy="196" r="18" fill="#dbeafe" opacity="0.6"/>
+
+  <!-- 气泡 -->
+  <circle cx="252" cy="70" r="7" fill="#bcd9f7" opacity="0.9"/>
+  <circle cx="272" cy="52" r="5" fill="#bcd9f7" opacity="0.75"/>
+  <circle cx="288" cy="38" r="3.5" fill="#bcd9f7" opacity="0.6"/>
+
+  <!-- 鱼尾 -->
+  <path d="M72 132 L18 96 L34 132 L18 168 Z" fill="url(#fin)"/>
+  <!-- 鱼身 -->
+  <ellipse cx="156" cy="132" rx="96" ry="62" fill="url(#fish)"/>
+  <!-- 上鳍 -->
+  <path d="M128 74 C150 44 192 42 208 66 C186 68 158 74 128 74 Z" fill="url(#fin)"/>
+  <!-- 下鳍 -->
+  <path d="M126 186 C146 210 178 212 194 192 C172 190 148 188 126 186 Z" fill="url(#fin)"/>
+  <!-- 侧鳍 -->
+  <path d="M150 132 C170 116 198 118 208 134 C192 146 166 148 150 132 Z" fill="#ffe0c2" opacity="0.85"/>
+  <!-- 肚子 -->
+  <ellipse cx="166" cy="156" rx="58" ry="28" fill="#fff3e4" opacity="0.75"/>
+  <!-- 眼睛 -->
+  <circle cx="206" cy="112" r="15" fill="#ffffff"/>
+  <circle cx="210" cy="113" r="8" fill="#243044"/>
+  <circle cx="213" cy="110" r="2.6" fill="#ffffff"/>
+  <!-- 微笑 -->
+  <path d="M196 146 C206 154 220 154 230 146" stroke="#a9481a" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- 腮红 -->
+  <ellipse cx="186" cy="138" rx="11" ry="6.5" fill="#ff9f9f" opacity="0.55"/>
+
+  <!-- 标题 -->
+  <text x="300" y="110" font-family="'Microsoft YaHei','PingFang SC','Noto Sans SC',system-ui,sans-serif" font-size="42" font-weight="700" fill="#12304d">PT 原盘转载发布与智能查重助手</text>
+  <text x="302" y="152" font-family="'Microsoft YaHei','PingFang SC','Noto Sans SC',system-ui,sans-serif" font-size="20" font-weight="500" fill="#5b7690">Blu-ray 原盘筛选 · 跨站查重 · BDInfo 排版 · 转种填单 · 图床转存</text>
+  <text x="302" y="188" font-family="'Microsoft YaHei','PingFang SC','Noto Sans SC',system-ui,sans-serif" font-size="18" font-weight="600" fill="#e2661f">作者：大肥鱼 · 单文件油猴脚本 · future 分支</text>
+</svg>
