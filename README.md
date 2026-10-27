@@ -66,7 +66,7 @@
 ## 安装
 
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/)。
-2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.29.user.js`](legacy/pt-bluray-assistant-v0.0.0.29.user.js)，点 `Raw` 确认安装。
+2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.30.user.js`](legacy/pt-bluray-assistant-v0.0.0.30.user.js)，点 `Raw` 确认安装。
 3. 刷新站点，右上角出现「转种与调度中枢」即成功。
 
 后续步骤见 [快速上手](docs/QUICKSTART.md)。
@@ -74,7 +74,7 @@
 ## 目录
 
 ```
-legacy/pt-bluray-assistant-v0.0.0.29.user.js   当前版本（安装这个）
+legacy/pt-bluray-assistant-v0.0.0.30.user.js   当前版本（安装这个）
 docs/QUICKSTART.md                             快速上手
 docs/GUIDE.md                                  使用手册
 docs/ARCHITECTURE.md                           架构设计
@@ -145,9 +145,9 @@ docs/mascot.png                                角色原图
 
 早期断点要求列表地址完全一致，重新登录或改筛选即失配。现只比较站点对与保存时间；切换站点或改目标站仍会重来，属预期行为。
 
-### K-11 HDDVDinfo 字段粘连 · 未解决
+### K-11 字段粘连的 BDInfo · 已修复
 
-`Disc Size:` 与 `Playlist:` 粘成一行导致表格解析出错，当前不解析，提示人工替换。
+部分站的 BDInfo 把多个字段粘在同行（`bytesProtection:`、`MPLSSize:`、`1080iAudio:`），逐行解析全部失效。现在解析前先做一次字段级归一化：识别 12 个已知字段标签，若标签前紧贴非空白字符则补换行，再逐行匹配。回归用例覆盖“粘连文本正确拆分”与“正常文本不得被拆坏”两种情况。
 
 ### K-12 图床压缩长图 · 未解决
 
