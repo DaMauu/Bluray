@@ -34,7 +34,7 @@
 
 Tampermonkey 单文件脚本（约 6300 行，无构建步骤），把**未处理过的蓝光原盘**从一个私有 PT 站搬到另一个：读源站列表、剔除重编码与禁转、去目标站查重、把可发的排进待发队列，再取 BDInfo、截图、豆瓣简介，自动填好目标站上传表单。
 
-支持 NexusPHP、UNIT3D、Gazelle、f3nix（BeyondHD）；目标站默认 PterClub，可切换为任意已支持站点。
+支持 NexusPHP、UNIT3D、Gazelle、f3nix（特定站点）；目标站可切换为任意已支持站点。
 
 ## 能力概览
 
@@ -89,7 +89,7 @@ docs/mascot.png                                角色原图
 | UNIT3D | 完整 | 有 API Key 时走 API，无则网页解析 |
 | NexusPHP | 完整 | 列表与详情双解析 |
 | Gazelle | 基本 | 审核与详情可用 |
-| f3nix（BeyondHD） | 基本 | 同上 |
+| f3nix（特定站点） | 基本 | 同上 |
 
 浏览器：Chrome / Edge / Firefox 最新版 + Tampermonkey。
 
