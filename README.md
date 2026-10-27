@@ -47,14 +47,13 @@
 - **截图保真**：候选地址逐个测宽取原图，二进制上传，返图尺寸复核。
 - **转种填单**：BDInfo 表格重建、副标题排版、种子注入、字段锁定、标题守卫。
 - **推送下载**：推送到 qBittorrent 并自动补设分类。
-- **HR 提示**：信息卡固定显示目标站做种要求，悬停查看完整条款。
 
 ## 面板布局
 
 ```
 ┌─────────────────────────┬─────────────────────────┐
 │ 副标题                  │ 转载站 / 发布站          │
-│                         │ 运行通道 / 下载器 / HR   │
+│                         │ 运行通道 / 下载器        │
 ├─────────────────────────┼─────────────────────────┤
 │ 简介                    │ 实时运行日志             │
 ├─────────────────────────┼─────────────────────────┤
@@ -67,7 +66,7 @@
 ## 安装
 
 1. 安装 [Tampermonkey](https://www.tampermonkey.net/)。
-2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.32.user.js`](legacy/pt-bluray-assistant-v0.0.0.32.user.js)，点 `Raw` 确认安装。
+2. 打开 [`legacy/pt-bluray-assistant-v0.0.0.33.user.js`](legacy/pt-bluray-assistant-v0.0.0.33.user.js)，点 `Raw` 确认安装。
 3. 刷新站点，右上角出现「原盘转载面板」即成功。
 
 后续步骤见 [快速上手](docs/QUICKSTART.md)。
@@ -75,7 +74,7 @@
 ## 目录
 
 ```
-legacy/pt-bluray-assistant-v0.0.0.32.user.js   当前版本（安装这个）
+legacy/pt-bluray-assistant-v0.0.0.33.user.js   当前版本（安装这个）
 docs/QUICKSTART.md                             快速上手
 docs/GUIDE.md                                  使用手册
 docs/ARCHITECTURE.md                           架构设计
