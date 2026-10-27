@@ -1,4 +1,4 @@
-![PT 原盘转载发布与智能查重助手](docs/banner.svg)
+![PT 原盘转载发布与智能查重助手](docs/banner.png)
 
 # PT 原盘转载发布与智能查重助手
 
@@ -75,7 +75,8 @@
 
 ```
 legacy/pt-bluray-assistant-v0.0.0.27.user.js   当前单文件版
-docs/banner.svg                                本 README 的封面图
+docs/banner.png                                封面图（大肥鱼 · DeepSeek 鲸鱼小人）
+docs/mascot.png                                角色原图
 docs/AI-CONTEXT.md                             给接手的 AI 的上下文与硬规则
 docs/DEVELOPMENT.md                            与 README 同源的开发说明
 ```
